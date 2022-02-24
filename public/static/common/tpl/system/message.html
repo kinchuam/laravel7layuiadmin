@@ -1,0 +1,216 @@
+<style>
+    /** 消息列表样式 */
+    .message-list {
+        position: absolute;
+        top: 48px;
+        left: 0;
+        right: 0;
+        bottom: 45px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .message-list-item {
+        display: block;
+        padding: 10px 20px;
+        line-height: 24px;
+        position: relative;
+        border-bottom: 1px solid #e8e8e8;
+    }
+
+    .message-list-item:hover, .message-btn-clear:hover, .message-btn-more:hover {
+        background: #F2F2F2;
+    }
+
+    .message-list-item .message-item-icon {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        margin-top: -20px;
+        border-radius: 50%;
+        position: absolute;
+        left: 20px;
+        top: 50%;
+    }
+
+    .message-list-item .message-item-icon.layui-icon {
+        color: #fff;
+        font-size: 22px;
+        text-align: center;
+        background-color: #FE5D58;
+    }
+
+    .message-list-item .message-item-icon + .message-item-right {
+        margin-left: 55px;
+    }
+
+    .message-list-item .message-item-title {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .message-list-item .message-item-text {
+        color: #999;
+        font-size: 12px;
+    }
+
+    .message-list-item > .layui-badge {
+        position: absolute;
+        right: 20px;
+        top: 12px;
+    }
+
+    .message-list-item > .layui-badge + .message-item-right {
+        margin-right: 50px;
+    }
+
+    .message-btn-clear, .message-btn-more {
+        color: #666;
+        display: block;
+        padding: 10px 5px;
+        line-height: 24px;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    .message-btn-clear {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-top: 1px solid #e8e8e8;
+    }
+
+    .message-btn-more {
+        color: #666;
+        font-size: 13px;
+    }
+
+    .message-btn-more.ew-btn-loading > .ew-btn-loading-text {
+        font-size: 13px !important;
+    }
+
+    .message-list-empty {
+        color: #999;
+        padding: 100px 0;
+        text-align: center;
+        display: none;
+    }
+
+    .message-list-empty > .layui-icon {
+        color: #ccc;
+        display: block;
+        font-size: 45px;
+        margin-bottom: 15px;
+    }
+
+    .show-empty .message-list-empty {
+        display: block;
+    }
+
+    .show-empty .message-btn-clear, .show-empty .message-list {
+        display: none;
+    }
+    /** //消息列表样式结束 */
+</style>
+
+<div class="layui-card" id="LAY_app_tab" style="box-shadow: none;border: none;">
+    <div class="layui-tab layui-tab-brief" lay-filter="tab-message">
+        <ul class="layui-tab-title" style="text-align: center;">
+            <li class="layui-this" data-event="message">通知 <span>(0)</span></li>
+            <li data-event="mine">私信 <span>(0)</span></li>
+        </ul>
+        <div class="layui-tab-content" style="padding: 0;">
+            <!-- tab1 -->
+            <div class="layui-tab-item layui-show" id="tab-message">
+                <div class="message-list"></div>
+                <!-- 列表为空 -->
+                <div class="message-list-empty" >
+                    <i class="layui-icon layui-icon-notice"></i>
+                    <div>没有通知</div>
+                </div>
+                <a id="messageClearBtn1" class="message-btn-clear">全部标记已读</a>
+            </div>
+            <!-- tab2 -->
+            <div class="layui-tab-item" id="tab-mine">
+                <div class="message-list"></div>
+                <!-- 列表为空 -->
+                <div class="message-list-empty">
+                    <i class="layui-icon layui-icon-dialogue"></i>
+                    <div>没有消息</div>
+                </div>
+                <a id="messageClearBtn2" class="message-btn-clear">清空消息</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="tpl-message" type="text/html">
+    <!-- 实际项目请使用后台数据循环出来 -->
+    {{#  layui.each(d.list, function(index, item){ }}
+    <a class="message-list-item" href="javascript:;">
+        <i class="layui-icon layui-icon-speaker message-item-icon"></i>
+        <div class="message-item-right">
+            <h2 class="message-item-title">{{ item.title }}</h2>
+            <p class="message-item-text">{{ item.date }}</p>
+        </div>
+    </a>
+    {{#  }); }}
+</script>
+
+<script id="tpl-mine" type="text/html">
+    {{#  layui.each(d.list, function(index, item){ }}
+    <a class="message-list-item" href="javascript:;">
+        <img class="message-item-icon" src="{{ item.icon }}" alt="">
+        <div class="message-item-right">
+            <h2 class="message-item-title">{{ item.title }}</h2>
+            <p class="message-item-text">{{ item.content }}</p>
+            <p class="message-item-text">{{ item.date }}</p>
+        </div>
+    </a>
+    {{#  }); }}
+    {{#  if(d.list.length < d.count){ }}
+    <a id="messageMoreBtn2" class="message-btn-more">加载更多</a>
+    {{#  } }}
+</script>
+
+<script>
+    layui.use(['element', 'laytpl', 'admin'], function () {
+        let $ = layui.jquery, admin = layui.admin, element = layui.element, laytpl = layui.laytpl;
+        let eml = "#LAY_app_tab";
+        /* 加载更多按钮点击事件 */
+        $('#messageMoreBtn2').click(function () {
+            let $that = $(this);
+            admin.btnLoading($that);
+            setTimeout(function () {
+                admin.btnLoading($that, false);
+                $that.before($that.prev()[0].outerHTML);
+            }, 300);
+        });
+        /* 清空消息点击事件 */
+        $('#messageClearBtn1,#messageClearBtn2').on('click', function () {
+            $(this).parents('.layui-tab-item').addClass('show-empty');
+        });
+        getData();
+        element.on('tab(tab-message)', function(data) {
+            let that = $(this), event = that.data('event');
+            getData(event, data.index);
+        });
+
+        function getData(event = 'message', index = 0) {
+            $.get(getRouteUrl('admin.data'), {event}, function (res) {
+                let count = res.data.count, data = res.data.data;
+                $(eml + " .layui-tab ul li").eq(index).find('span').text(' ('+ count +')');
+                laytpl($("#tpl-"+ event).html()).render({
+                    list: data,
+                    count: count,
+                }, function(html){
+                    if (data.length <= 0) {
+                        $('#tab-'+ event).addClass('show-empty');
+                    }
+                    $('#tab-'+ event).find(".message-list").html(html);
+                });
+            });
+        }
+    });
+</script>
