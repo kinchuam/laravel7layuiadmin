@@ -30,7 +30,7 @@ class Response
             "message" => $message,
         ];
         if (!empty($data)) {
-            $arr["data"] = $data ?: (object) $data;
+            $arr["data"] = (object) $data;
         }
         return isset($data['data']) ? array_merge($arr, $data) : $arr;
     }

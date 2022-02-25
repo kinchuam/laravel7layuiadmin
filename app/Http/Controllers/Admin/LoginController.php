@@ -35,7 +35,8 @@ class LoginController extends Controller
             $this->sendLockoutResponse($request);
         }
         if ($this->attemptLogin($request)) {
-            $this->SessionToken($request);
+            $user = $this->guard()->user();
+            LoginLog::CreateLoginLog('登录成功', $user->username);
             return $this->sendLoginResponse($request);
         }
         $this->incrementLoginAttempts($request);
@@ -47,7 +48,12 @@ class LoginController extends Controller
         $request->session()->regenerate();
         $this->clearLoginAttempts($request);
         if ($request->expectsJson()) {
-            return $this->authenticated($request, $this->guard()->user()) ?: $this->adminJson([
+            $user = $this->guard()->user();
+            $ip = GetClientIp();
+            $user['ip'] = $ip;
+            $user['ip_data'] = $this->GetIpAddress($ip);
+            return $this->authenticated($request, $user) ?: $this->adminJson([
+                'user' => $user,
                 'url' => $this->redirectPath()
             ]);
         }
@@ -78,7 +84,9 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        LoginLog::CreateLoginLog('退出登录');
+        $user = $this->guard()->user();
+        Cache::tags(['System', 'CachedUser'])->forget($user->id);
+        LoginLog::CreateLoginLog('退出登录', $user->username);
         $this->guard()->logout();
         $request->session()->invalidate();
         return redirect(route('admin.loginForm'));
@@ -89,13 +97,4 @@ class LoginController extends Controller
         return auth()->guard('admin');
     }
 
-    protected function SessionToken($request)
-    {
-        $user = $this->guard()->user();
-        $time = time();
-        $singleToken = md5(getClientIp().$user->id.$time);
-        Cache::tags(['System', 'LoginToken'])->forever($user->id, $time);
-        $request->session()->put('LOGIN-TOKEN', $singleToken);
-        LoginLog::CreateLoginLog('登录成功', $user->username);
-    }
 }

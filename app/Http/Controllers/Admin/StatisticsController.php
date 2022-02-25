@@ -12,9 +12,8 @@ class StatisticsController extends Controller
 {
     public function LineChart()
     {
-
         return $this->adminJson([
-            'platform' => $this->GetPlatform(),
+            'platform' => $this->GetPlatform(6),
             'browser' => $this->GetBrowser(),
         ]);
     }
@@ -46,7 +45,7 @@ class StatisticsController extends Controller
         ]);
     }
 
-    private function GetPlatform($days = 6)
+    private function GetPlatform($days = 5)
     {
         $start = date('Y-m-d', strtotime("-".$days." day")).' 00:00:00';
         $end = date('Y-m-d').' 23:00:00';

@@ -32,7 +32,7 @@
                         <div class="layui-card-body">
                             <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade" lay-filter="LAY-index-dataview" data-height="600px">
                                 <div carousel-item id="LAY-index-dataview">
-                                        <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                                    <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
                                     <div></div>
                                 </div>
                             </div>
@@ -113,8 +113,12 @@
                         this.GetLineChart();
                     },
                     GetData() {
-                        let that = this;
+                        let that = this, localData = layui.sessionData('AdminSystem');
+                        if (localData.SystemCount) {
+                            return that.SetTplData(localData.SystemCount);
+                        }
                         $.get(AppGlobalMethods.RouteUrl('admin/count'), {}, function (result) {
+                            layui.sessionData('AdminSystem', { key: 'SystemCount', value: result.data });
                             that.SetTplData(result.data);
                         });
                     },
@@ -192,7 +196,7 @@
                         });
                     },
                     GetUser() {
-                        let localData = layui.sessionData('AdminSystem'), user = localData.SystemUser;
+                        let localData = layui.data('AdminSystem'), user = localData.User;
                         if (user) {
                             let $t = $('.admin_user_left ul li');
                             $('#welcome-span').text(user.display_name||'--');

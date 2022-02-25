@@ -77,14 +77,30 @@
                 }
             }),
             frameElementUrl = self.frameElement ? AppGlobalMethods.RouteUrl($(self.frameElement).attr('src')) : false,
-            init = function () {
-                $.get(AppGlobalMethods.RouteUrl('admin/check_login'), {}, function (result) {
-                    let data = result.data;
-                    if (data.isCheck) {
-                        frameElementUrl ? location.replace(frameElementUrl) : location.replace(result.data.url);
-                    }
-                });
-            };init();
+            U = {
+                init() {
+                    $.get(AppGlobalMethods.RouteUrl('admin/check_login'), {}, function (result) {
+                        let data = result.data;
+                        if (data.isCheck) {
+                            frameElementUrl ? location.replace(frameElementUrl) : location.replace(result.data.url);
+                            return true;
+                        }
+                        layui.data('AdminSystem', {key: 'Menus', remove: true});
+                        layui.data('AdminSystem', { key: 'User', remove: true});
+                        layui.data('AdminSystem', { key: 'Permissions', remove: true});
+                    });
+                },
+                GetMenus(Rdata) {
+                    $.get(AppGlobalMethods.RouteUrl('admin/navigation'), {}, function (res) {
+                        let data = res.data;
+                        layui.data('AdminSystem', {key: 'User', value: Rdata.user});
+                        layui.data('AdminSystem', { key: 'Menus', value: data.menus });
+                        layui.data('AdminSystem', { key: 'Permissions', value: data.permissions });
+                        layer.msg('登录成功', {icon: 6});
+                        frameElementUrl ? location.replace(frameElementUrl) : location.replace(Rdata.url);
+                    })
+                },
+            };U.init();
         util.event('lay-active', {
             login: function(that) {
                 if ($(that).attr('condition') != 1) {
@@ -101,10 +117,10 @@
                             $(that).attr('condition', 0)
                             if (result.code != 0) {
                                 slider.reset();
-                                layer.msg('账号密码错误', {icon: 5});return;
+                                layer.msg('账号密码错误', {icon: 5});
+                                return;
                             }
-                            layer.msg('登录成功', {icon: 6});
-                            frameElementUrl ? location.replace(frameElementUrl) : location.replace(result.data.url);
+                            U.GetMenus(result.data);
                         }).error(function (xhr, status, info) {
                             slider.reset();
                             $(".submit").attr('condition', 0);

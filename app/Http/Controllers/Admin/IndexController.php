@@ -20,20 +20,6 @@ class IndexController extends Controller
         return view('admin.index.index');
     }
 
-    public function GetUser()
-    {
-        $user = $this->guard()->user();
-        $user['ip'] = GetClientIp();
-        $info = (new Ip2Region())->btreeSearch($user['ip']);
-        $user['ip_data'] = !empty($info['region']) ? $info['region'] : '';
-        return $this->adminJson($user);
-    }
-
-    public function UserPermissions()
-    {
-        return $this->adminJson($this->guard()->user()->getAllPermissions()->pluck('name'));
-    }
-
     public function Navigation()
     {
         $list = config('custom.permission_data');
@@ -53,7 +39,10 @@ class IndexController extends Controller
                 }
             }
         }
-        return $this->adminJson($newArr);
+        return $this->adminJson([
+            'menus' => $newArr,
+            'permissions' => $user->getAllPermissions()->pluck('name')
+        ]);
     }
 
     private function NavData($data)

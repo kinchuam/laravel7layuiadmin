@@ -4,9 +4,22 @@ namespace App\Traits;
 
 use App\Library\Response as LibraryResponse;
 use App\Models\System\Permission as SystemPermission;
+use Ip2Region;
 
 trait CommonTrait
 {
+
+    /**
+     * @param $ip
+     * @return mixed|null
+     * @throws \Exception
+     */
+    protected function GetIpAddress($ip)
+    {
+        if (!$ip) { return null;}
+        $info = (new Ip2Region())->btreeSearch($ip);
+        return $info['region'];
+    }
     /**
      * @param $keys
      */

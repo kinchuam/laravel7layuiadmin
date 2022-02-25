@@ -19,8 +19,6 @@ Route::group(['namespace' => 'Admin'], function ($route) {
         $route->get('/', 'IndexController@layout')->name('admin.layout');
         $route->get('data', 'IndexController@data');
         $route->get('index', 'IndexController@index');
-        $route->get('userInfo', 'IndexController@GetUser');
-        $route->get('userPermissions', 'IndexController@UserPermissions');
         $route->get('navigation', 'IndexController@Navigation');
         $route->get('webSite', 'IndexController@WebSite');
         $route->get('count','StatisticsController@GetCount');

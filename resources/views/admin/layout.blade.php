@@ -145,8 +145,9 @@
                 },
                 init: function() {
                     this.SetPageUrl();
-                    this.GetUser();
-                    this.GetPermission();
+                    let localData = layui.data('AdminSystem'), User = localData.User || [];
+                    this.SetMenus(localData.Menus || []);
+                    $("#layui-admin-username cite").text(User.username||'--');
                     layui.sessionData('AdminSystem', {
                         key: 'fileLibrary', value: {
                             FileUpload: AppGlobalMethods.RouteUrl('admin/fileUpload'),
@@ -159,32 +160,27 @@
                             DeleteGroup: AppGlobalMethods.RouteUrl('admin/content/files_group/destroy'),
                         }
                     });
-                },
-                GetMenus() {
-                    let that = this;
-                    $.get(AppGlobalMethods.RouteUrl('admin/navigation'), {}, function (res) {
-                        that.SetMenus(res.data);
-                    })
+                    return this;
                 },
                 SetMenus(data) {
                     let html = '';
                     layui.each(data, function (index, $menu) {
                         html += '<li data-name="'+$menu.name+'" class="layui-nav-item">'
-                             + '<a '+($menu.url ? "lay-href="+$menu.url : "")+' lay-tips="'+$menu.display_name+'" lay-direction="2">'
-                             + '<i class="layui-icon '+$menu.icon+'"></i> <cite>'+$menu.display_name+'</cite>'
-                             + '</a>';
+                            + '<a '+($menu.url ? "lay-href="+$menu.url : "")+' lay-tips="'+$menu.display_name+'" lay-direction="2">'
+                            + '<i class="layui-icon '+$menu.icon+'"></i> <cite>'+$menu.display_name+'</cite>'
+                            + '</a>';
                         if($menu.child) {
                             html += '<dl class="layui-nav-child">';
                             layui.each($menu.child, function (index1, $subMenu) {
                                 html += '<dd data-name="'+$subMenu.name+'" >'
-                                     + '<a lay-href="'+$subMenu.url+'">'+$subMenu.display_name+'</a>';
-                                    if($subMenu.child) {
-                                        html += '<dl class="layui-nav-child">';
-                                        layui.each($menu.child, function (index2, $threeMenu) {
-                                            html += '<dd data-name="'+$threeMenu.name+'" > <a lay-href="'+$threeMenu.url+'">'+$threeMenu.display_name+'</a> </dd>';
-                                        })
-                                        html += '</dl>';
-                                    }
+                                    + '<a lay-href="'+$subMenu.url+'">'+$subMenu.display_name+'</a>';
+                                if($subMenu.child) {
+                                    html += '<dl class="layui-nav-child">';
+                                    layui.each($menu.child, function (index2, $threeMenu) {
+                                        html += '<dd data-name="'+$threeMenu.name+'" > <a lay-href="'+$threeMenu.url+'">'+$threeMenu.display_name+'</a> </dd>';
+                                    })
+                                    html += '</dl>';
+                                }
                                 html += '</dd>';
                             })
                             html += '</dl>';
@@ -194,23 +190,6 @@
                     $("#LAY-system-side-menu").addClass('layui-nav').addClass('layui-nav-tree').append(html);
                     layui.element.render('nav', 'layadmin-system-side-menu');
                     this.SetDropdown();
-                },
-                GetUser() {
-                    $.get(AppGlobalMethods.RouteUrl('admin/userInfo'), {}, function (res) {
-                        let data = res.data;
-                        layui.sessionData('AdminSystem', {
-                            key: 'SystemUser', value: data
-                        });
-                        $("#layui-admin-username cite").text(data.username||'--');
-                    })
-                },
-                GetPermission() {
-                    $.get(AppGlobalMethods.RouteUrl('admin/userPermissions'), {}, function (res) {
-                        layui.sessionData('AdminSystem', {
-                            key: 'UserPermissions', value: res.data
-                        });
-                    });
-                    this.GetMenus();
                 },
                 SetDropdown() {
                     dropdown.render({
@@ -262,12 +241,25 @@
                         });
                     });
                 },
-            };Y.init();
+                GetWebSite() {
+                    let localData = layui.sessionData('AdminSystem');
+                    if (localData.WebSite) {
+                        return this;
+                    }
+                    $.get(AppGlobalMethods.RouteUrl('admin/webSite'), {}, function (res) {
+                        layui.sessionData('AdminSystem', { key: 'WebSite', value: res.data });
+                    })
+                    return this;
+                },
+            };Y.init().GetWebSite();
         layui.util.event('lay-active', {
             logout() {
                 layer.confirm('确认退出登录吗？', function(index) {
                     layer.msg('正在处理请求...', { icon: 16, shade: 0.01, time: false });
                     $.get(AppGlobalMethods.RouteUrl('admin/logout'), {}, function () {
+                        layui.data('AdminSystem', {key: 'Menus', remove: true});
+                        layui.data('AdminSystem', { key: 'User', remove: true});
+                        layui.data('AdminSystem', { key: 'Permissions', remove: true});
                         layer.close(index);location.reload();
                     })
                 })

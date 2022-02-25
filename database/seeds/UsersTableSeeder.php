@@ -4,6 +4,7 @@ use App\Models\System\User;
 use App\Models\System\Role;
 use App\Models\System\Permission;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
 
@@ -75,7 +76,12 @@ class UsersTableSeeder extends Seeder
 
     private function clear_cache()
     {
-        Cache::tags('system')->flush();
+        if (config('cache.default') == 'redis') {
+            Redis::flushdb();
+            return true;
+        }
+        Cache::flush();
+        return true;
     }
 
     private function CreatePermissions($data, $role, $parent_id = 0)
